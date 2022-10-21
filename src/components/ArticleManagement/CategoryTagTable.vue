@@ -22,19 +22,19 @@
       </el-button>
       <div style="margin-left:auto">
         <el-input
-            v-model="keywords"
+            v-model="requestParams.keywords"
             prefix-icon="el-icon-search"
             size="small"
             :placeholder='`请输入${searchName}`'
             style="width:200px"
-            @keyup.enter.native="searchCategories"
+            @keyup.enter.native="search"
         />
         <el-button
             type="primary"
             size="small"
             icon="el-icon-search"
             style="margin-left:1rem"
-            @click="searchCategories"
+            @click="search"
         >
           搜索
         </el-button>
@@ -43,6 +43,7 @@
     <!-- 表格展示 -->
     <el-table
         border
+        stripe
         :data="tableData"
         @selection-change="handleSelectionChange"
         v-loading="loading"
@@ -57,10 +58,11 @@
       <!-- 文章量 -->
       <el-table-column :prop="tableColumn[1].prop" :label="tableColumn[1].label" align="center" sortable/>
       <!-- 创建时间 -->
-      <el-table-column :prop="tableColumn[2].prop" :label="tableColumn[2].label" align="center" sortable>
+      <el-table-column prop="createTime" label="创建时间" align="center" sortable>
         <template slot-scope="scope">
           <i class="el-icon-time" style="margin-right:5px"/>
-          {{ scope.row[tableColumn[2].prop] | date }}
+          {{ scope.row.createTime | dateTime }}
+          <!--          {{ (scope.row[tableColumn[2].prop]) | date }}-->
         </template>
       </el-table-column>
       <!-- 列操作 -->
@@ -71,6 +73,8 @@
           </el-button>
           <el-popconfirm
               title="确定删除吗？"
+              icon="el-icon-info"
+              icon-color="red"
               style="margin-left:1rem"
               @confirm="deleteItemById(scope.row.id)"
           >
@@ -88,8 +92,8 @@
         :page-sizes="[5,10, 20]"
         @size-change="sizeChange"
         @current-change="currentChange"
-        :current-page="current"
-        :page-size="size"
+        :current-page="requestParams.current"
+        :page-size="requestParams.size"
         :total="count"
         layout="total, sizes, prev, pager, next, jumper"
     />
@@ -111,8 +115,9 @@
       <div class="dialog-title-container" slot="title" ref="addOrEditTitle"/>
       <el-form label-width="80px" size="medium" :model="itemForm">
         <el-form-item :label="searchName">
-          <el-input v-model="itemForm.name" style="width:220px"/>
+          <el-input v-model="itemForm.name" style="width:auto"/>
         </el-form-item>
+
       </el-form>
       <div slot="footer">
         <el-button @click="addOrEdit = false">取 消</el-button>
@@ -138,12 +143,13 @@ export default {
       type: String,
       default: "标题"
     },
+    // 搜索框的名字
     searchName: {
       type: String,
       required: true
     },
-    // 初始化表格
-    initTable: {
+    // 获取表数据
+    listTableData: {
       type: Function,
       required: true
     },
@@ -154,8 +160,10 @@ export default {
     },
     // 表列
     tableColumn: {
-      type: Object,
-      default: () => ({})
+      // type: Object,
+      // default: () => ({})
+      type: Array,
+      default: () => []
     },
     // 按 ID 删除项目
     deleteById: {
@@ -172,12 +180,16 @@ export default {
       type: Boolean,
       default: true
     },
+    // 添加和编辑的标题
     addOrEditTitle: {
       type: Object,
       default: () => ({})
     }
+
   },
   created() {
+    //初始化数据
+    this.listTableData(this.requestParams)
   },
   data() {
     return {
@@ -191,12 +203,20 @@ export default {
         name: ""
       },
       // 添加或编辑
-      addOrEdit: false
+      addOrEdit: false,
+      //请求参数
+      requestParams: {
+        // 当前页
+        current: 1,
+        // 条数
+        size: 10,
+        // 关键字
+        keywords: null
+      }
 
     }
   },
   methods: {
-
     /**
      * 处理选择更改
      * @param val
@@ -216,10 +236,10 @@ export default {
       if (id == null) {
         idList = this.deleteBatchesByIdList;
       } else {
-        // eslint-disable-next-line no-unused-vars
         idList = [id];
       }
-      this.deleteById(idList)
+      this.deleteById(idList, this.requestParams)
+      // 关闭删除对话框
       this.isDelete = false;
     },
 
@@ -249,14 +269,24 @@ export default {
         this.$message.error(this.searchName + "不能为空");
         return false;
       }
-      this.$emit("addOrEditItem", this.itemForm)
+      this.$emit("addOrEditItem", this.itemForm, this.requestParams)
       // 关闭表单
       this.addOrEdit = false;
     },
     // 改变每页条数
     sizeChange(size) {
-      this.size = size;
-      this.initTable();
+      this.requestParams.size = size;
+      this.listTableData(this.requestParams)
+    },
+    // 改变当前页
+    currentChange(current) {
+      this.requestParams.current = current;
+      this.listTableData(this.requestParams)
+    },
+    // 搜索
+    search() {
+      this.requestParams.current = 1;
+      this.listTableData(this.requestParams)
     },
   }
 }

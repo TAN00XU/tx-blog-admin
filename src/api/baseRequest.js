@@ -50,19 +50,24 @@ request.interceptors.response.use(
     },
     error => {
         console.log("失败", error)
-        if (error.response.code === 504 || error.response.code === 404) {
-            Message({
-                type: "error",
-                message: '服务器被吃了(っ °Д °;)っ',
-                showClose: true
-            });
-        } else {
-            Message({
-                type: "error",
-                message: '服务器出错了::>_<::',
-                showClose: true
-            });
-        }
+        Message({
+            type: "error",
+            message: '服务器被吃了(っ °Д °;)っ',
+            showClose: true
+        });
+        // if (error.response.code === 504 || error.response.code === 404) {
+        //     Message({
+        //         type: "error",
+        //         message: '服务器被吃了(っ °Д °;)っ',
+        //         showClose: true
+        //     });
+        // } else {
+        //     Message({
+        //         type: "error",
+        //         message: '服务器出错了::>_<::',
+        //         showClose: true
+        //     });
+        // }
 
         // 对响应错误做点什么
         return Promise.reject("服务器响应出错！" + error);

@@ -16,12 +16,13 @@ import "./assets/css/index.css";
 import "./assets/css/iconfont.css";
 // 配置文件
 import config from "@/assets/js/config";
-
+// 自定义日期时间插件
+import datePlugin from "@/plugins/date/datePlugin";
 
 Vue.prototype.config = config;
 Vue.use(VueAxios, axios);
 Vue.use(ElementUI);
-
+Vue.use(datePlugin);
 
 Vue.config.productionTip = false
 
