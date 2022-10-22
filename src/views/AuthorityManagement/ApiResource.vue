@@ -158,7 +158,7 @@
 <script>/**
  * api资源管理
  */
-import {deleteResourceById, listResource, saveOrUpdateResource} from "@/api/authorityManagement";
+import {deleteResourceById, listResource, saveOrUpdateResource} from "@/api/authorityManagement/api";
 
 /**
  * 接口管理

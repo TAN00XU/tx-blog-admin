@@ -17,6 +17,8 @@ export function generaMenu() {
                 }
                 if (item.component === "Layout") {
                     item.component = Layout;
+                    // layout不用点
+                    item.redirect = '/'
                 }
                 if (item.children && item.children.length > 0) {
                     item.children.forEach(route => {

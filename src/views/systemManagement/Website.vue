@@ -281,7 +281,7 @@
 
 <script>
 
-import {blogInfo, updateBlogInfo} from "@/api/blogInfo";
+import {updateBlogInfo, website} from "@/api/systemManagement/website";
 import * as imageConversion from "image-conversion";
 
 export default {
@@ -324,7 +324,7 @@ export default {
   methods: {
     getWebsiteConfig() {
       console.log("请求")
-      blogInfo().then(({data}) => {
+      website().then(({data}) => {
         console.log(data)
         this.websiteConfigForm = data.data;
       });

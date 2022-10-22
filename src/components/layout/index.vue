@@ -6,7 +6,7 @@
     </el-aside>
     <el-container :class="'main-container ' + isHide">
       <!-- 导航栏 -->
-      <el-header height="84px" style="padding:0">
+      <el-header height="84px">
         <NavBar :key="$route.fullPath"/>
       </el-header>
       <!-- 内容 -->
@@ -47,6 +47,14 @@ export default {
   transition: margin-left 0.45s;
   margin-left: 210px;
   min-height: 100vh;
+}
+
+.el-header {
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #d8dce0;
 }
 
 .hideSideBar {

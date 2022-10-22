@@ -15,7 +15,7 @@
 
 <script>
 import CategoryTagTable from "@/components/ArticleManagement/CategoryTagTable";
-import {addOrEditCategory, deleteCategory, listCategories} from "@/api/articleManagement";
+import {addOrEditCategory, deleteCategory, listCategories} from "@/api/ArticleManagement/categoryArticle.js";
 
 /**
  * 分类管理
