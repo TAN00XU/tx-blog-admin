@@ -4,7 +4,6 @@ import store from "@/store";
 /*加载进度条*/
 import NProgress from "nprogress";
 import "nprogress/nprogress.css";
-import {initMenu} from "@/utils/menu";
 
 Vue.use(VueRouter);
 
@@ -48,15 +47,11 @@ NProgress.configure({
 router.beforeEach((to, from, next) => {
     //开启加载进度条
     NProgress.start();
-
     if (to.path === "/login") {
         next();
     } else if (!store.state.userId) {
         next({path: "/login"});
     } else {
-        if (!store.state.userMenuList) {
-            initMenu()
-        }
         next();
     }
 });

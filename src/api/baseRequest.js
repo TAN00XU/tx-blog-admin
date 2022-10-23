@@ -9,7 +9,7 @@ const request = axios.create({
     timeout: 50000,
 
     // 重要！！！！！！
-    // 携带cookie 为保持session的一致性
+    // 携带cookie 为保持sessionId的一致性
     withCredentials: true,
     // 跨域状态必须使用
     crossDomain: true

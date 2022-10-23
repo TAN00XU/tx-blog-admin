@@ -38,6 +38,7 @@
 
 <script>
 import {login} from "@/api/login";
+import {initMenu} from "@/utils/menu";
 
 export default {
   name: "LoginAdmin",
@@ -62,35 +63,33 @@ export default {
       this.$refs.ruleForm.validate(valid => {
         if (valid) {
           // eslint-disable-next-line no-undef
-          // const captcha = new TencentCaptcha(
-          //     this.config.TENCENT_CAPTCHA,
-          //     function (res) {
-          //       if (res.ret === 0) {
-          //发送登录请求
-          let param = new URLSearchParams();
-          param.append("username", _this.loginForm.username);
-          param.append("password", _this.loginForm.password);
+          const captcha = new TencentCaptcha(
+              this.config.TENCENT_CAPTCHA,
+              function (res) {
+                if (res.ret === 0) {
+                  //发送登录请求
+                  let param = new URLSearchParams();
+                  param.append("username", _this.loginForm.username);
+                  param.append("password", _this.loginForm.password);
 
-          login(param).then(({data}) => {
-            console.log(data)
-            if (data.status) {
-
-              // 登录后保存用户信息
-              _this.$store.commit("LOGIN", data.data);
-
-              _this.$message.success("登录成功");
-              _this.$router.replace('/');
-
-
-            } else {
-              _this.$message.error(data.message);
-            }
-          });
-          // }
-          // }
-          // );
+                  login(param).then(({data}) => {
+                    console.log(data)
+                    if (data.status) {
+                      // 登录后保存用户信息
+                      _this.$store.commit("LOGIN", data.data);
+                      // 初始化菜单
+                      initMenu();
+                      _this.$message.success("登录成功");
+                      _this.$router.replace('/');
+                    } else {
+                      _this.$message.error(data.message);
+                    }
+                  });
+                }
+              }
+          );
           // 显示验证码
-          // captcha.show();
+          captcha.show();
         } else {
           this.$message.error("请检查表单")
           return false;

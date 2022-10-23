@@ -11,7 +11,6 @@ import {getMenus} from "@/api/menu";
  * @returns {Boolean}
  */
 export function initMenu() {
-    console.log("初始化用户菜单")
     // 查询用户菜单
     getMenus().then(
         ({data}) => {
@@ -35,7 +34,6 @@ export function initMenu() {
                     // 添加菜单到路由
                     router.addRoute(item)
                 });
-                console.log("======================")
                 // 添加侧边栏菜单
                 store.commit("SAVE_USER_MENU", userMenuList);
                 // 添加菜单到路由 已弃用
@@ -44,7 +42,6 @@ export function initMenu() {
                 Vue.prototype.$message.error(data.message);
                 router.resolve({path: "/login"});
             }
-            // return true;
         }
     ).catch(() => {
         Vue.prototype.$message.error('菜单获取失败');
