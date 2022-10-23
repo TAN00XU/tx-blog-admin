@@ -77,7 +77,7 @@ export default {
 
 /*进入的起点*/
 .fade-transform-enter {
-  opacity: 0;
+  opacity: 0.8;
   /*transform: translateX(-30px);*/
   transform: translateX(-60%);
 }
@@ -90,10 +90,9 @@ export default {
 
 /*离开的终点*/
 .fade-transform-leave-to {
-  opacity: 0;
+  opacity: 0.8;
   /*transform: translateX(30px);*/
   transform: translateX(60%);
-
 }
 
 

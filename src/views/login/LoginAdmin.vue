@@ -37,9 +37,7 @@
 </template>
 
 <script>
-// import {generaMenu} from "@/assets/js/menu";
 import {login} from "@/api/login";
-import {generaMenu} from "@/utils/menu";
 
 export default {
   name: "LoginAdmin",
@@ -51,42 +49,48 @@ export default {
       },
       rules: {
         username: [{required: true, message: "用户名不能为空", trigger: "blur"}],
-        password: [{required: true, message: "密码不能为空", trigger: "blur"}]
+        password: [
+          {required: true, message: "密码不能为空", trigger: "blur"},
+          // {min: 6, message: '长度在 3 到 5 个字符', trigger: 'blur'}
+        ]
       }
     };
   },
   methods: {
     login() {
+      const _this = this;
       this.$refs.ruleForm.validate(valid => {
         if (valid) {
-          const that = this;
           // eslint-disable-next-line no-undef
-          const captcha = new TencentCaptcha(
-              this.config.TENCENT_CAPTCHA,
-              function (res) {
-                if (res.ret === 0) {
-                  //发送登录请求
-                  let param = new URLSearchParams();
-                  param.append("username", that.loginForm.username);
-                  param.append("password", that.loginForm.password);
+          // const captcha = new TencentCaptcha(
+          //     this.config.TENCENT_CAPTCHA,
+          //     function (res) {
+          //       if (res.ret === 0) {
+          //发送登录请求
+          let param = new URLSearchParams();
+          param.append("username", _this.loginForm.username);
+          param.append("password", _this.loginForm.password);
 
-                  login(param).then(({data}) => {
-                    if (data.status) {
-                      // 登录后保存用户信息
-                      that.$store.commit("LOGIN", data.data);
-                      // 加载用户菜单
-                      generaMenu();
-                      that.$message.success("登录成功");
-                      that.$router.replace({path: "/"});
-                    } else {
-                      that.$message.error(data.message);
-                    }
-                  });
-                }
-              }
-          );
+          login(param).then(({data}) => {
+            console.log(data)
+            if (data.status) {
+
+              // 登录后保存用户信息
+              _this.$store.commit("LOGIN", data.data);
+
+              _this.$message.success("登录成功");
+              _this.$router.replace('/');
+
+
+            } else {
+              _this.$message.error(data.message);
+            }
+          });
+          // }
+          // }
+          // );
           // 显示验证码
-          captcha.show();
+          // captcha.show();
         } else {
           this.$message.error("请检查表单")
           return false;

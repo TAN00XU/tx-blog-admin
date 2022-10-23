@@ -6,7 +6,13 @@ const request = axios.create({
     //基础URL
     baseURL: "http://localhost:8888",
     // baseURL: "https://admin.talkxj.com",
-    timeout: 50000
+    timeout: 50000,
+
+    // 重要！！！！！！
+    // 携带cookie 为保持session的一致性
+    withCredentials: true,
+    // 跨域状态必须使用
+    crossDomain: true
 });
 
 // 添加请求拦截器
@@ -50,21 +56,24 @@ request.interceptors.response.use(
     },
     error => {
         console.log("失败", error)
-        Message({
-            type: "error",
-            message: '服务器被吃了(っ °Д °;)っ',
-            showClose: true
-        });
+        console.log("失败", error.response)
+        if (error.code === 'ERR_NETWORK') {
+            Message({
+                type: "error",
+                message: '服务器被吃了(っ °Д °;)っ',
+                showClose: true
+            });
+        } else {
+            Message({
+                type: "error",
+                message: '服务器出错了::>_<::',
+                showClose: true
+            });
+        }
         // if (error.response.code === 504 || error.response.code === 404) {
         //     Message({
         //         type: "error",
-        //         message: '服务器被吃了(っ °Д °;)っ',
-        //         showClose: true
-        //     });
-        // } else {
-        //     Message({
-        //         type: "error",
-        //         message: '服务器出错了::>_<::',
+        //         message: '资源找不到{{{(>_<)}}}',
         //         showClose: true
         //     });
         // }

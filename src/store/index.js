@@ -1,5 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
+// 持久化state
+import createPersistedState from "vuex-persistedstate";
 
 Vue.use(Vuex);
 
@@ -7,8 +9,14 @@ Vue.use(Vuex);
 const actions = {}
 //准备mutations对象——修改state中的数据
 const mutations = {
+    /**
+     * 登录保存用户信息
+     * @param state
+     * @param user 用户信息
+     * @constructor
+     */
     LOGIN(state, user) {
-        state.userId = user.userId;
+        state.userId = user.id;
         state.roleList = user.roleList;
         state.avatar = user.avatar;
         state.nickname = user.nickname;
@@ -22,6 +30,7 @@ const mutations = {
      * @constructor
      */
     SAVE_USER_MENU(state, userMenuList) {
+        console.log("保存用户菜单列表")
         state.userMenuList = userMenuList;
     },
     // 退出登录
@@ -74,7 +83,7 @@ const mutations = {
 //准备state对象——保存具体的数据
 const state = {
     // 用户id
-    userId: 1,
+    userId: null,
     // 用户头像
     avatar: null,
     // 用户简介
@@ -94,5 +103,10 @@ const state = {
 export default new Vuex.Store({
     actions,
     mutations,
-    state
+    state,
+    plugins: [
+        createPersistedState({
+            storage: window.sessionStorage
+        })
+    ]
 })

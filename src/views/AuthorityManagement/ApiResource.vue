@@ -221,6 +221,7 @@ export default {
             }
           });
     },
+    // 打开修改与编辑对话框
     openModel(resource) {
       if (resource != null) {
         this.resourceForm = JSON.parse(JSON.stringify(resource));

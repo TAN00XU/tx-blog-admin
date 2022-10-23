@@ -36,6 +36,12 @@ vue2只能使用vuex3版本
  npm i vuex@3
 ```
 
+## vuex-persistedstate 插件 state数据持久化
+
+```shell
+npm install vuex-persistedstate --save
+```
+
 # vue-router
 
 vue2只能使用vue-router3版本
@@ -50,7 +56,7 @@ npm i vue-router@3
 npm install axios -save
 ```
 
-# vue-axios
+## vue-axios
 
 ```shell
 npm install vue-axios -save

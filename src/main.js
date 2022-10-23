@@ -20,12 +20,13 @@ import config from "@/assets/js/config";
 import datePlugin from "@/plugins/date/datePlugin";
 
 Vue.prototype.config = config;
+
+// axios.defaults.withCredentials = true;
 Vue.use(VueAxios, axios);
 Vue.use(ElementUI);
 Vue.use(datePlugin);
 
 Vue.config.productionTip = false
-
 
 new Vue({
     router,
