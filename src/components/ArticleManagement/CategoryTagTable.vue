@@ -249,9 +249,9 @@ export default {
      */
     openModel(item) {
       if (item != null) {
-        // let item = JSON.parse(JSON.stringify(item))
-        this.itemForm.id = item.id;
-        this.itemForm.name = item[this.tableColumn[0].prop];
+        let _item = JSON.parse(JSON.stringify(item))
+        this.itemForm.id = _item.id;
+        this.itemForm.name = _item[this.tableColumn[0].prop];
         this.$refs.addOrEditTitle.innerHTML = this.addOrEditTitle.edit;
       } else {
         this.itemForm.id = null;

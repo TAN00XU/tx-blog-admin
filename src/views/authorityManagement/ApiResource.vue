@@ -67,7 +67,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="createTime" label="创建时间" width="240" align="center">
+      <el-table-column prop="createTime" label="创建时间" width="200" align="center">
         <template slot-scope="scope">
           <i class="el-icon-time" style="margin-right:5px"/>
           {{ scope.row.createTime | dateTime }}

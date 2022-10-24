@@ -92,7 +92,7 @@ export default {
 .fade-transform-leave-to {
   opacity: 0.8;
   /*transform: translateX(30px);*/
-  transform: translateX(60%);
+  transform: translateX(100%);
 }
 
 
