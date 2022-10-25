@@ -52,3 +52,16 @@ export function saveOrUpdateRoleMenu(roleForm) {
         data: roleForm
     })
 }
+
+/**
+ * 根据id删除角色
+ * @param roleIdList
+ * @returns {*}
+ */
+export function deleteRoles(roleIdList) {
+    return request({
+        method: "DELETE",
+        url: "/admin/roles",
+        data: roleIdList
+    })
+}

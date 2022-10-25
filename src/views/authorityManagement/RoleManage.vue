@@ -197,10 +197,16 @@
 
 <script>
 
-import {listRole, listRoleMenu, listRoleResource, saveOrUpdateRoleMenu} from "@/api/authorityManagement/RoleAuthority";
+import {
+  deleteRoles,
+  listRole,
+  listRoleMenu,
+  listRoleResource,
+  saveOrUpdateRoleMenu
+} from "@/api/authorityManagement/roleManage";
 
 /**
- * 角色权限管理
+ * 角色管理
  */
 export default {
   name: "RoleAuthority",
@@ -380,27 +386,30 @@ export default {
      * @param id
      */
     deleteRoles(id) {
-      var param = {};
+      console.log("值", id)
+      let param = {};
       if (id == null) {
-        param = {data: this.roleIdList};
+        param = this.roleIdList;
       } else {
-        param = {data: [id]};
+        param = [id];
       }
-      this.axios.delete("/api/admin/roles", param).then(({data}) => {
-        if (data.flag) {
-          this.$notify.success({
-            title: "成功",
-            message: data.message
+      console.log(param)
+      deleteRoles(param)
+          .then(({data}) => {
+            if (data.status) {
+              this.$notify.success({
+                title: "成功",
+                message: data.message
+              });
+              this.listRoles();
+            } else {
+              this.$notify.error({
+                title: "失败",
+                message: data.message
+              });
+            }
+            this.isDelete = false;
           });
-          this.listRoles();
-        } else {
-          this.$notify.error({
-            title: "失败",
-            message: data.message
-          });
-        }
-        this.isDelete = false;
-      });
     },
   }
 };
