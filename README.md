@@ -88,3 +88,9 @@ npm install dayjs --save
 ```shell
 npm i image-conversion --save
 ```
+
+# mavon-editor markdown编辑器
+
+```shell
+npm install mavon-editor --save
+```

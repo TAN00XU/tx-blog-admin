@@ -297,9 +297,10 @@ export default {
      * @param role 角色信息
      */
     openMenuModel(role) {
-      // 第一次加载会报错
       this.$nextTick(function () {
-        this.$refs.menuTree.setCheckedKeys([]);
+        if (this.$refs.menuTree) {
+          this.$refs.menuTree.setCheckedKeys([]);
+        }
       });
       this.$refs.roleTitle.innerHTML = role ? "修改角色和菜单" : "新增角色";
       if (role != null) {
@@ -316,9 +317,10 @@ export default {
     },
     // 打开资源模块
     openResourceModel(role) {
-      // 第一次加载会报错
       this.$nextTick(function () {
-        this.$refs.resourceTree.setCheckedKeys([]);
+        if (this.$refs.resourceTree) {
+          this.$refs.resourceTree.setCheckedKeys([]);
+        }
       });
       this.roleForm = JSON.parse(JSON.stringify(role));
       this.roleResource = true;

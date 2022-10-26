@@ -11,6 +11,9 @@ import VueAxios from "vue-axios";
 // element-ui
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
+// markdown编辑器
+import mavonEditor from "mavon-editor";
+import "mavon-editor/dist/css/index.css";
 // css
 import "./assets/css/index.css";
 import "./assets/css/iconfont.css";
@@ -21,9 +24,9 @@ import datePlugin from "@/plugins/date/datePlugin";
 
 Vue.prototype.config = config;
 
-// axios.defaults.withCredentials = true;
 Vue.use(VueAxios, axios);
 Vue.use(ElementUI);
+Vue.use(mavonEditor);
 Vue.use(datePlugin);
 
 Vue.config.productionTip = false

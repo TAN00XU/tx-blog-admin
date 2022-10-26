@@ -110,24 +110,31 @@
         </template>
       </el-table-column>
     </el-table>
-    <!-- 新增模态框 -->
+
+    <!-- 新增对话框 -->
     <el-dialog :visible.sync="addMenu" width="30%" top="12vh">
       <div class="dialog-title-container" slot="title" ref="menuTitle"/>
       <el-form label-width="80px" size="medium" :model="menuForm">
         <!-- 菜单类型 -->
         <el-form-item label="菜单类型" v-if="show">
           <el-radio-group v-model="isCatalog">
-            <el-radio :label="true">目录</el-radio>
-            <el-radio :label="false">一级菜单</el-radio>
+            <el-radio-button :label="true">目录</el-radio-button>
+            <el-radio-button :label="false">一级菜单</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <!-- 菜单名称 -->
         <el-form-item label="菜单名称">
-          <el-input v-model="menuForm.name" style="width:220px"/>
+          <el-input v-model="menuForm.name" style="max-width:220px"/>
         </el-form-item>
         <!-- 菜单图标 -->
         <el-form-item label="菜单图标">
           <el-popover placement="bottom-start" width="300" trigger="click">
+            <el-input
+                :prefix-icon="'iconfont ' + menuForm.icon"
+                slot="reference"
+                v-model="menuForm.icon"
+                style="max-width:220px"
+            />
             <el-row>
               <el-col
                   v-for="(item, index) of iconList"
@@ -140,21 +147,15 @@
                 </div>
               </el-col>
             </el-row>
-            <el-input
-                :prefix-icon="'iconfont ' + menuForm.icon"
-                slot="reference"
-                v-model="menuForm.icon"
-                style="width:220px"
-            />
           </el-popover>
         </el-form-item>
         <!-- 组件路径 -->
         <el-form-item label="组件路径" v-show="!isCatalog">
-          <el-input v-model="menuForm.component" style="width:220px"/>
+          <el-input v-model="menuForm.component" style="max-width:220px"/>
         </el-form-item>
         <!-- 路由地址 -->
         <el-form-item label="访问路径">
-          <el-input v-model="menuForm.path" style="width:220px"/>
+          <el-input v-model="menuForm.path" style="max-width:220px"/>
         </el-form-item>
         <!-- 显示排序 -->
         <el-form-item label="显示排序">
@@ -186,7 +187,7 @@
 <script>/**
  * 菜单管理
  */
-import {listMenus} from "@/api/authorityManagement/menuManage";
+import {deleteMenu, listMenus, saveOrUpdateMenu} from "@/api/authorityManagement/menuManage";
 
 export default {
   name: "MenuManage",
@@ -198,9 +199,11 @@ export default {
       keywords: "",
       loading: true,
       addMenu: false,
+      // 是否是目录
       isCatalog: true,
       show: true,
       menuList: [],
+      // 表单
       menuForm: {
         id: null,
         name: "",
@@ -217,11 +220,6 @@ export default {
         "el-icon-myyonghuliebiao",
         "el-icon-myxiaoxi",
         "el-icon-myliuyan",
-        "el-icon-myshouye",
-        "el-icon-myfabiaowenzhang",
-        "el-icon-myyonghuliebiao",
-        "el-icon-myxiaoxi",
-        "el-icon-myliuyan"
       ]
     };
   },
@@ -235,6 +233,11 @@ export default {
             this.loading = false;
           });
     },
+    /**
+     * 打开新增对话框
+     * @param menu 菜单
+     * @param type 类型
+     */
     openModel(menu, type) {
       if (menu) {
         this.show = false;
@@ -278,54 +281,60 @@ export default {
     checkIcon(icon) {
       this.menuForm.icon = icon;
     },
+    // 新增或修改菜单
     saveOrUpdateMenu() {
-      if (this.menuForm.name.trim() == "") {
+      if (this.menuForm.name.trim() === "") {
         this.$message.error("菜单名不能为空");
         return false;
       }
-      if (this.menuForm.icon.trim() == "") {
+      if (this.menuForm.icon.trim() === "") {
         this.$message.error("菜单icon不能为空");
         return false;
       }
-      if (this.menuForm.component.trim() == "") {
+      if (this.menuForm.component.trim() === "") {
         this.$message.error("菜单组件路径不能为空");
         return false;
       }
-      if (this.menuForm.path.trim() == "") {
+      if (this.menuForm.path.trim() === "") {
         this.$message.error("菜单访问路径不能为空");
         return false;
       }
-      this.axios.post("/api/admin/menus", this.menuForm).then(({data}) => {
-        if (data.flag) {
-          this.$notify.success({
-            title: "成功",
-            message: "操作成功"
+
+      saveOrUpdateMenu(this.menuForm)
+          .then(({data}) => {
+            if (data.status) {
+              this.$notify.success({
+                title: "成功",
+                message: data.message
+              });
+              // 刷新数据
+              this.listMenus();
+            } else {
+              this.$notify.error({
+                title: "失败",
+                message: data.message
+              });
+            }
+            this.addMenu = false;
           });
-          this.listMenus();
-        } else {
-          this.$notify.error({
-            title: "失败",
-            message: "操作失败"
-          });
-        }
-        this.addMenu = false;
-      });
     },
+    // 删除菜单
     deleteMenu(id) {
-      this.axios.delete("/api/admin/menus/" + id).then(({data}) => {
-        if (data.flag) {
-          this.$notify.success({
-            title: "成功",
-            message: "删除成功"
+      deleteMenu(id)
+          .then(({data}) => {
+            if (data.status) {
+              this.$notify.success({
+                title: "成功",
+                message: data.message
+              });
+              this.listMenus();
+            } else {
+              this.$notify.error({
+                title: "失败",
+                message: data.message
+              });
+            }
           });
-          this.listMenus();
-        } else {
-          this.$notify.error({
-            title: "失败",
-            message: data.message
-          });
-        }
-      });
     }
   }
 };

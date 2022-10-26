@@ -30,7 +30,6 @@ const mutations = {
      * @constructor
      */
     SAVE_USER_MENU(state, userMenuList) {
-        console.log("保存用户菜单列表")
         state.userMenuList = userMenuList;
     },
     // 退出登录

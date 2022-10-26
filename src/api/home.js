@@ -8,6 +8,6 @@ import request from "@/api/baseRequest";
 export function getData() {
     return request({
         method: "GET",
-        url: ""
+        url: "/web/website/config"
     })
 }
