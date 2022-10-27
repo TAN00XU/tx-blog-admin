@@ -30,7 +30,7 @@
     <mavon-editor
         ref="md"
         v-model="article.articleContent"
-        @imgAdd="uploadImg"
+        @imgAdd="uploadArticleImg"
         style="height:calc(100vh - 260px)"
     />
     <!-- 添加文章对话框 -->
@@ -164,21 +164,20 @@
           <el-upload
               class="upload-cover"
               drag
-              :action="`/api/admin/articles/images`"
+              action="/api/admin/articles/images"
               accept=".jpg,.png"
               :before-upload="beforeUpload"
               :on-success="uploadCover"
           >
-            <!--            <template v-if="article.articleCover === ''">-->
-            <i class="el-icon-upload" v-if="article.articleCover === ''"/>
-            <div class="el-upload__text" v-if="article.articleCover === ''">
-              将文件拖到此处，或<em>点击上传</em>
-            </div>
-            <div class="el-upload__tip" slot="tip" v-if="article.articleCover === ''">
-              只能上传jpg/png文件，且不超过200kb
-            </div>
-            <!--            </template>-->
-
+            <template v-if="article.articleCover === ''">
+              <i class="el-icon-upload"/>
+              <div class="el-upload__text">
+                将文件拖到此处，或<em>点击上传</em>
+              </div>
+              <div class="el-upload__tip" slot="tip">
+                只能上传jpg/png文件，且不超过200kb
+              </div>
+            </template>
             <img
                 v-else
                 :src="article.articleCover"
@@ -215,21 +214,26 @@
 
 <script>
 import * as imageConversion from "image-conversion";
-import {searchCategories, searchTags} from "@/api/ArticleManagement/publishArticle";
+import {
+  getArticleById,
+  publishArticles,
+  searchCategories,
+  searchTags,
+  uploadImg
+} from "@/api/ArticleManagement/publishArticle";
 
 /**
- * 发布文章
+ * 发布与编辑文章
  */
 export default {
   name: "PublishArticle",
   created() {
-    const path = this.$route.path;
-    const arr = path.split("/");
-    const articleId = arr[2];
+    const articleId = this.$route.params.articleId;
     if (articleId) {
-      this.axios.get("/api/admin/articles/" + articleId).then(({data}) => {
-        this.article = data.data;
-      });
+      getArticleById(articleId)
+          .then(({data}) => {
+            this.article = data.data;
+          });
     } else {
       const article = sessionStorage.getItem("article");
       if (article) {
@@ -237,6 +241,7 @@ export default {
       }
     }
   },
+  // 销毁时
   destroyed() {
     //文章自动保存功能
     this.autoSaveArticle();
@@ -276,40 +281,13 @@ export default {
         isTop: 0,
         // 文章类型 默认原创
         type: 1,
+        // 1 公开 2 私密 3 草稿
         status: 1
       }
     };
   },
   methods: {
-    // 上传图片
-    uploadImg(pos, file) {
-      const formData = new FormData();
-      if (file.size / 1024 < this.config.UPLOAD_SIZE) {
-        formData.append("file", file);
-        this.axios
-            .post("/api/admin/articles/images", formData)
-            .then(({data}) => {
-              this.$refs.md.$img2Url(pos, data.data);
-            });
-      } else {
-        this.$message.info("文件大于200kb，将进行压缩");
-        // 压缩到200KB,这里的200就是要压缩的大小,可自定义
-        imageConversion
-            .compressAccurately(file, this.config.UPLOAD_SIZE)
-            .then(res => {
-              formData.append(
-                  "file",
-                  new window.File([res], file.name, {type: file.type})
-              );
-              this.axios
-                  .post("/api/admin/articles/images", formData)
-                  .then(({data}) => {
-                    // 将返回的url替换到文本原位置
-                    this.$refs.md.$img2Url(pos, data.data);
-                  });
-            });
-      }
-    },
+    // 保存文章为草稿
     saveArticleDraft() {
       if (this.article.articleTitle.trim() === "") {
         this.$message.error("文章标题不能为空");
@@ -320,30 +298,34 @@ export default {
         return false;
       }
       this.article.status = 3;
-      this.axios.post("/api/admin/articles", this.article).then(({data}) => {
-        if (data.flag) {
-          if (this.article.id === null) {
-            this.$store.commit("removeTab", "发布文章");
-          } else {
-            this.$store.commit("removeTab", "修改文章");
-          }
-          sessionStorage.removeItem("article");
-          this.$router.push({path: "/article-list"});
-          this.$notify.success({
-            title: "成功",
-            message: "保存草稿成功"
+      publishArticles(this.article)
+          .then(({data}) => {
+            if (data.status) {
+              if (this.article.id === null) {
+                this.$store.commit("removeTab", "发布文章");
+              } else {
+                this.$store.commit("removeTab", "修改文章");
+              }
+              // 移除会话存储
+              sessionStorage.removeItem("article");
+              // 跳转文章列表
+              this.$router.push({path: "/article-list"});
+              this.$notify.success({
+                title: data.message,
+                message: "保存草稿成功"
+              });
+            } else {
+              this.$notify.error({
+                title: data.message,
+                message: "保存草稿失败"
+              });
+            }
           });
-        } else {
-          this.$notify.error({
-            title: "失败",
-            message: "保存草稿失败"
-          });
-        }
-      });
 
       //关闭自动保存功能
       this.autoSave = false;
     },
+    // 文章保存或更新
     saveOrUpdateArticle() {
       if (this.article.articleTitle.trim() === "") {
         this.$message.error("文章标题不能为空");
@@ -365,49 +347,53 @@ export default {
         this.$message.error("文章封面不能为空");
         return false;
       }
-      this.axios.post("/api/admin/articles", this.article).then(({data}) => {
-        if (data.flag) {
-          if (this.article.id === null) {
-            this.$store.commit("removeTab", "发布文章");
-          } else {
-            this.$store.commit("removeTab", "修改文章");
-          }
-          sessionStorage.removeItem("article");
-          this.$router.push({path: "/article-list"});
-          this.$notify.success({
-            title: "成功",
-            message: data.message
+      publishArticles(this.article)
+          .then(({data}) => {
+            if (data.status) {
+              if (this.article.id === null) {
+                this.$store.commit("REMOVE_TAB", "发布文章");
+              } else {
+                this.$store.commit("REMOVE_TAB", "修改文章");
+              }
+              // 移除会话存储
+              sessionStorage.removeItem("article");
+              // 跳转文章列表
+              this.$router.push({path: "/article-list"});
+
+              this.$notify.success({
+                title: "成功",
+                message: data.message
+              });
+            } else {
+              this.$notify.error({
+                title: "失败",
+                message: data.message
+              });
+            }
+            this.addOrEdit = false;
           });
-        } else {
-          this.$notify.error({
-            title: "失败",
-            message: data.message
-          });
-        }
-        this.addOrEdit = false;
-      });
       //关闭自动保存功能
       this.autoSave = false;
     },
+    // 自动保存
     autoSaveArticle() {
       // 自动上传文章
       if (
           this.autoSave &&
-          this.article.articleTitle.trim() != "" &&
-          this.article.articleContent.trim() != "" &&
+          this.article.articleTitle.trim() !== "" &&
+          this.article.articleContent.trim() !== "" &&
           this.article.id != null
       ) {
-        this.axios
-            .post("/api/admin/articles", this.article)
+        publishArticles(this.article)
             .then(({data}) => {
-              if (data.flag) {
+              if (data.status) {
                 this.$notify.success({
                   title: "成功",
                   message: "自动保存成功"
                 });
               } else {
                 this.$notify.error({
-                  title: "失败",
+                  title: data.message,
                   message: "自动保存失败"
                 });
               }
@@ -417,6 +403,72 @@ export default {
       if (this.autoSave && this.article.id == null) {
         sessionStorage.setItem("article", JSON.stringify(this.article));
       }
+    },
+
+    // 上传文章图片
+    uploadArticleImg(pos, file) {
+      // 服务加载
+      const loading = this.$loading({
+        lock: true,
+        text: 'Loading',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      const formData = new FormData();
+      if (file.size / 1024 < this.config.UPLOAD_SIZE) {
+        formData.append("file", file);
+        uploadImg(formData)
+            .then(({data}) => {
+                  if (data.status) {
+                    // 将返回的url替换到文本原位置
+                    this.$refs.md.$img2Url(pos, data.data);
+                    this.$notify.success({
+                      title: data.message,
+                      message: "上传成功"
+                    });
+                  } else {
+                    this.$notify.error({
+                      title: data.message,
+                      message: "上传失败"
+                    });
+                  }
+                }
+            );
+        loading.close();
+      } else {
+        this.$message.info("文件大于200kb，将进行压缩");
+        // 压缩到200KB,这里的200就是要压缩的大小,可自定义
+        imageConversion
+            .compressAccurately(file, this.config.UPLOAD_SIZE)
+            .then(res => {
+                  formData.append(
+                      "file",
+                      new File([res], file.name, {type: file.type})
+                  );
+                  uploadImg(formData)
+                      .then(({data}) => {
+                            if (data.status) {
+                              // 将返回的url替换到文本原位置
+                              this.$refs.md.$img2Url(pos, data.data);
+                              this.$notify.success({
+                                title: data.message,
+                                message: "上传成功"
+                              });
+                            } else {
+                              this.$notify.error({
+                                title: data.message,
+                                message: "上传失败"
+                              });
+                            }
+                          }
+                      );
+                  loading.close();
+
+                }
+            );
+      }
+
+
     },
     // 获取分类列表
     listCategories() {
@@ -440,7 +492,9 @@ export default {
         this.$message.error("文章内容不能为空");
         return false;
       }
+      // 获取分类列表
       this.listCategories();
+      // 获取标签列表
       this.listTags();
       this.addOrEdit = true;
     },
@@ -451,9 +505,8 @@ export default {
             cb(data.data);
           });
     },
-    // 处理选中的
+    // 处理选中的分类
     handleSelectCategories(item) {
-      console.log(item)
       this.addCategory({
         categoryName: item.categoryName
       });
@@ -482,7 +535,7 @@ export default {
             cb(data.data);
           });
     },
-    // 处理选中的
+    // 处理选中的标签
     handleSelectTag(item) {
       this.addTag({
         tagName: item.tagName
@@ -508,7 +561,6 @@ export default {
       const index = this.article.tagNameList.indexOf(item);
       this.article.tagNameList.splice(index, 1);
     },
-
     // 封面上传之前
     beforeUpload(file) {
       const isJPG = file.type === "image/jpeg" || file.type === "image/png";
@@ -520,7 +572,7 @@ export default {
             if (file.size / 1024 < this.config.UPLOAD_SIZE) {
               resolve(file);
             } else {
-              this.$message.info("文件大于200kb，将进行压缩")
+              this.$message.info("图片大于200kb，将进行压缩")
               // 压缩到200KB,这里的200就是要压缩的大小,可自定义
               imageConversion
                   .compressAccurately(file, this.config.UPLOAD_SIZE)

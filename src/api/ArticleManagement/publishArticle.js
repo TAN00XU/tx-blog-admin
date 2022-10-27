@@ -30,3 +30,41 @@ export function searchTags(keywords) {
         }
     })
 }
+
+/**
+ * 上传图片
+ * @param formData
+ * @returns {*}
+ */
+export function uploadImg(formData) {
+    return request({
+        method: "POST",
+        url: "/admin/articles/images",
+        data: formData
+    })
+}
+
+/**
+ * 发布文章
+ * @param article
+ * @returns {*}
+ */
+export function publishArticles(article) {
+    return request({
+        method: "POST",
+        url: "/admin/articles",
+        data: article
+    })
+}
+
+/**
+ * 根据id查询文章
+ * @param articleId
+ * @returns {*}
+ */
+export function getArticleById(articleId) {
+    return request({
+        method: "GET",
+        url: `/admin/articles/${articleId}`
+    })
+}
