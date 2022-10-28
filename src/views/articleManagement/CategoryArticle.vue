@@ -98,7 +98,6 @@ export default {
      * @param requestParams 请求参数
      */
     addOrEditCategory(categoryForm, requestParams) {
-      console.log(categoryForm, requestParams)
       addOrEditCategory(categoryForm)
           .then(({data}) => {
             if (data.status) {

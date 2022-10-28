@@ -22,7 +22,7 @@
     <div class="operation-container">
       <!--逻辑删除-->
       <el-button
-          v-if="isDelete === 0 || isDelete===null"
+          v-if="isDelete === 0"
           type="danger"
           size="small"
           icon="el-icon-delete"
@@ -167,6 +167,7 @@
         :data="articleList"
         @selection-change="selectionChange"
         v-loading="loading"
+        element-loading-background="rgba(0, 0, 0, 0.7)"
     >
       <!-- 表格列 -->
       <el-table-column type="selection" width="45"/>
@@ -208,7 +209,6 @@
       >
         <template slot-scope="scope">
           <i
-              :class="!scope.row.isDelete?'el-icon-check':'el-icon-close'"
               :style="!scope.row.isDelete?'color: #28C8F9;':'color: #B81B4A;'"
               style="font-weight: bolder"
           >{{ scope.row.articleTitle }}</i>
@@ -406,6 +406,15 @@
 
 <script>
 
+import {
+  deleteArticles,
+  listArticleBack,
+  listCategories,
+  listTags,
+  updateArticleDelete,
+  updateArticleTop
+} from "@/api/ArticleManagement/articleList";
+
 /**
  * 文章列表
  */
@@ -419,6 +428,7 @@ export default {
   data: function () {
     return {
       loading: true,
+      // 批量逻辑删除对话框
       updateIsDelete: false,
       remove: false,
       typeList: [
@@ -445,8 +455,8 @@ export default {
       type: null,
       categoryId: null,
       tagId: null,
-      // null 表示所有文章都查询包括已经逻辑删除的
-      isDelete: null,
+      // 是否已删除
+      isDelete: 0,
       isExport: false,
       // 1 公开 2 私密 3 草稿
       status: null,
@@ -456,6 +466,7 @@ export default {
     };
   },
   methods: {
+    // 选择列表
     selectionChange(articleList) {
       this.articleIdList = [];
       articleList.forEach(item => {
@@ -473,54 +484,58 @@ export default {
     },
     // 逻辑删除文章
     updateArticleDelete(id) {
-      let param = {};
+      let params = {};
       if (id != null) {
-        param.idList = [id];
+        params.idList = [id];
       } else {
-        param.idList = this.articleIdList;
+        params.idList = this.articleIdList;
       }
-      param.isDelete = this.isDelete === 0 ? 1 : 0;
-      this.axios.put("/api/admin/articles", param).then(({data}) => {
-        if (data.flag) {
-          this.$notify.success({
-            title: "成功",
-            message: data.message
+      params.isDelete = this.isDelete === 0 ? 1 : 0;
+      updateArticleDelete(params)
+          .then(({data}) => {
+            if (data.status) {
+              this.$notify.success({
+                title: "成功",
+                message: data.message
+              });
+              // 刷新
+              this.listArticles();
+            } else {
+              this.$notify.error({
+                title: "失败",
+                message: data.message
+              });
+            }
+            this.updateIsDelete = false;
           });
-          this.listArticles();
-        } else {
-          this.$notify.error({
-            title: "失败",
-            message: data.message
-          });
-        }
-        this.updateIsDelete = false;
-      });
     },
+    // 彻底删除文章
     deleteArticles(id) {
-      var param = {};
+      let params = {};
       if (id == null) {
-        param = {data: this.articleIdList};
+        params = {data: this.articleIdList};
       } else {
-        param = {data: [id]};
+        params = {data: [id]};
       }
-      this.axios.delete("/api/admin/articles", param).then(({data}) => {
-        if (data.flag) {
-          this.$notify.success({
-            title: "成功",
-            message: data.message
+      deleteArticles(params)
+          .then(({data}) => {
+            if (data.status) {
+              this.$notify.success({
+                title: "成功",
+                message: data.message
+              });
+              this.listArticles();
+            } else {
+              this.$notify.error({
+                title: "失败",
+                message: data.message
+              });
+            }
+            this.remove = false;
           });
-          this.listArticles();
-        } else {
-          this.$notify.error({
-            title: "失败",
-            message: data.message
-          });
-        }
-        this.remove = false;
-      });
     },
     exportArticles(id) {
-      var param = {};
+      let param = {};
       if (id == null) {
         param = this.articleIdList;
       } else {
@@ -570,10 +585,12 @@ export default {
         });
       }
     },
+    // 改变条数
     sizeChange(size) {
       this.size = size;
       this.listArticles();
     },
+    // 改变当前页
     currentChange(current) {
       this.current = current;
       this.listArticles();
@@ -582,7 +599,7 @@ export default {
     changeStatus(status) {
       switch (status) {
         case "all":
-          this.isDelete = null;
+          this.isDelete = 0;
           this.status = null;
           break;
         case "public":
@@ -606,54 +623,75 @@ export default {
       // 活动的状态
       this.activeStatus = status;
     },
+    // 改变置顶
     changeTop(article) {
-      this.axios
-          .put("/api/admin/articles/top", {
-            id: article.id,
-            isTop: article.isTop
-          })
+      let requestParams = {
+        id: article.id,
+        isTop: article.isTop
+      }
+      updateArticleTop(requestParams).then(({data}) => {
+        if (data.status) {
+          if (requestParams.isTop === 1) {
+            this.$notify.success({
+              title: "成功",
+              message: "置顶成功"
+            });
+          } else {
+            this.$notify.success({
+              title: "成功",
+              message: "已取消置顶置"
+            });
+          }
+        } else {
+          this.$notify.error({
+            title: "失败",
+            message: data.message
+          });
+        }
+        this.remove = false;
+      });
+    },
+    // 获取文章列表
+    listArticles() {
+      this.loading = true;
+      let requestParams = {
+        current: this.current,
+        size: this.size,
+        keywords: this.keywords,
+        categoryId: this.categoryId,
+        status: this.status,
+        tagId: this.tagId,
+        type: this.type,
+        isDelete: this.isDelete
+      }
+      listArticleBack(requestParams)
           .then(({data}) => {
-            if (data.flag) {
+            if (data.status) {
               this.$notify.success({
                 title: "成功",
-                message: "置顶成功"
+                message: "文章获取成功"
               });
+              this.articleList = data.data.recordList;
+              this.count = data.data.count;
+              this.loading = false;
             } else {
-              this.$notify.error({
-                title: "失败",
-                message: data.message
+              this.$notify.success({
+                title: "成功",
+                message: "文章获取失败"
               });
             }
-            this.remove = false;
+
           });
     },
-    listArticles() {
-      this.axios
-          .get("/api/admin/articles", {
-            params: {
-              current: this.current,
-              size: this.size,
-              keywords: this.keywords,
-              categoryId: this.categoryId,
-              status: this.status,
-              tagId: this.tagId,
-              type: this.type,
-              isDelete: this.isDelete
-            }
-          })
-          .then(({data}) => {
-            this.articleList = data.data.recordList;
-            this.count = data.data.count;
-            this.loading = false;
-          });
-    },
+    // 获取分类列表
     listCategories() {
-      this.axios.get("/api/admin/categories/search").then(({data}) => {
+      listCategories().then(({data}) => {
         this.categoryList = data.data;
       });
     },
+    // 获取标签列表
     listTags() {
-      this.axios.get("/api/admin/tags/search").then(({data}) => {
+      listTags().then(({data}) => {
         this.tagList = data.data;
       });
     }

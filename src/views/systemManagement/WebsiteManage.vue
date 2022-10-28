@@ -1,6 +1,6 @@
 <template>
   <el-card class="main-card">
-    <el-tabs v-model="activeName" @tab-click="handleClick">
+    <el-tabs v-model="activeName" type="border-card">
       <!-- 网站信息 -->
       <el-tab-pane label="网站信息" name="info">
         <el-form
@@ -95,7 +95,7 @@
                   size="small"
                   style="width:400px;margin-right:1rem"
               />
-              <el-checkbox label="qq">是否展示</el-checkbox>
+              <el-checkbox label="qq" border>是否展示</el-checkbox>
             </el-form-item>
             <el-form-item label="Github">
               <el-input
@@ -103,7 +103,7 @@
                   size="small"
                   style="width:400px;margin-right:1rem"
               />
-              <el-checkbox label="github">是否展示</el-checkbox>
+              <el-checkbox label="github" border>是否展示</el-checkbox>
             </el-form-item>
             <el-form-item label="Gitee">
               <el-input
@@ -111,7 +111,7 @@
                   size="small"
                   style="width:400px;margin-right:1rem"
               />
-              <el-checkbox label="gitee">是否展示</el-checkbox>
+              <el-checkbox label="gitee" border>是否展示</el-checkbox>
             </el-form-item>
             <el-button
                 type="primary"
@@ -184,30 +184,30 @@
             </el-upload>
           </el-form-item>
           <el-form-item label="邮箱通知">
-            <el-radio-group v-model="websiteConfigForm.isEmailNotice">
-              <el-radio :label="0">关闭</el-radio>
-              <el-radio :label="1">开启</el-radio>
+            <el-radio-group v-model="websiteConfigForm.isEmailNotice" size="medium">
+              <el-radio-button :label="0">关闭</el-radio-button>
+              <el-radio-button :label="1">开启</el-radio-button>
             </el-radio-group>
           </el-form-item>
           <el-form-item label="评论审核">
-            <el-radio-group v-model="websiteConfigForm.isCommentReview">
-              <el-radio :label="0">关闭</el-radio>
-              <el-radio :label="1">开启</el-radio>
+            <el-radio-group v-model="websiteConfigForm.isCommentReview" size="medium">
+              <el-radio-button :label="0">关闭</el-radio-button>
+              <el-radio-button :label="1">开启</el-radio-button>
             </el-radio-group>
           </el-form-item>
           <el-form-item label="留言审核">
-            <el-radio-group v-model="websiteConfigForm.isMessageReview">
-              <el-radio :label="0">关闭</el-radio>
-              <el-radio :label="1">开启</el-radio>
+            <el-radio-group v-model="websiteConfigForm.isMessageReview" size="medium">
+              <el-radio-button :label="0">关闭</el-radio-button>
+              <el-radio-button :label="1">开启</el-radio-button>
             </el-radio-group>
           </el-form-item>
           <el-form-item label="打赏状态">
-            <el-radio-group v-model="websiteConfigForm.isReward">
-              <el-radio :label="0">关闭</el-radio>
-              <el-radio :label="1">开启</el-radio>
+            <el-radio-group v-model="websiteConfigForm.isReward" size="medium">
+              <el-radio-button :label="0">关闭</el-radio-button>
+              <el-radio-button :label="1">开启</el-radio-button>
             </el-radio-group>
           </el-form-item>
-          <el-row style="width:600px" v-show="websiteConfigForm.isReward == 1">
+          <el-row style="width:600px" v-show="websiteConfigForm.isReward === 1">
             <el-col :md="12">
               <el-form-item label="微信收款码">
                 <el-upload
@@ -244,14 +244,14 @@
             </el-col>
           </el-row>
           <el-form-item label="聊天室状态">
-            <el-radio-group v-model="websiteConfigForm.isChatRoom">
-              <el-radio :label="0">关闭</el-radio>
-              <el-radio :label="1">开启</el-radio>
+            <el-radio-group v-model="websiteConfigForm.isChatRoom" size="medium">
+              <el-radio-button :label="0">关闭</el-radio-button>
+              <el-radio-button :label="1">开启</el-radio-button>
             </el-radio-group>
           </el-form-item>
           <el-form-item
               label="Websocket地址"
-              v-show="websiteConfigForm.isChatRoom == 1"
+              v-show="websiteConfigForm.isChatRoom === 1"
           >
             <el-input
                 v-model="websiteConfigForm.websocketUrl"
@@ -260,9 +260,9 @@
             />
           </el-form-item>
           <el-form-item label="音乐播放器状态">
-            <el-radio-group v-model="websiteConfigForm.isMusicPlayer">
-              <el-radio :label="0">关闭</el-radio>
-              <el-radio :label="1">开启</el-radio>
+            <el-radio-group v-model="websiteConfigForm.isMusicPlayer" size="medium">
+              <el-radio-button :label="0">关闭</el-radio-button>
+              <el-radio-button :label="1">开启</el-radio-button>
             </el-radio-group>
           </el-form-item>
           <el-button
@@ -281,17 +281,21 @@
 
 <script>
 
-import {updateBlogInfo, website} from "@/api/systemManagement/website";
+import {getWebsiteConfig, updateBlogInfo} from "@/api/systemManagement/websiteManage";
 import * as imageConversion from "image-conversion";
 
+/**
+ * 网站管理
+ */
 export default {
-  // eslint-disable-next-line vue/multi-word-component-names
-  name: "Website",
+  name: "WebsiteManage",
   created() {
     this.getWebsiteConfig();
   },
   data: function () {
     return {
+      // 活动的页签
+      activeName: "info",
       websiteConfigForm: {
         websiteAvatar: "",
         websiteName: "",
@@ -299,10 +303,12 @@ export default {
         websiteIntro: "",
         websiteNotice: "",
         websiteCreateTime: null,
+        // 备案号
         websiteRecordNo: "",
         socialLoginList: [],
+        // 要展示的社交url
         socialUrlList: [],
-        qq: "2507320149",
+        qq: "",
         github: "",
         gitee: "",
         userAvatar: "",
@@ -311,26 +317,24 @@ export default {
         weiXinQRCode: "",
         alipayQRCode: "",
         articleCover: "",
-        isChatRoom: 1,
+        isChatRoom: 0,
         websocketUrl: "",
-        isMusicPlayer: 1,
-        isEmailNotice: 1,
+        isMusicPlayer: 0,
+        isEmailNotice: 0,
         isCommentReview: 0,
         isMessageReview: 0
-      },
-      activeName: "info"
+      }
     };
   },
   methods: {
+    // 获取博客配置
     getWebsiteConfig() {
-      console.log("请求")
-      website().then(({data}) => {
-        console.log(data)
+      getWebsiteConfig().then(({data}) => {
         this.websiteConfigForm = data.data;
       });
     },
+    // 上传之前
     beforeUpload(file) {
-      console.log("大小", file.size)
       this.$message.warning("上传头像图片大小不能超过 200kb! 将进行压缩");
       return new Promise(resolve => {
         if (file.size / 1024 < this.config.UPLOAD_SIZE) {
@@ -344,31 +348,35 @@ export default {
             });
       });
     },
-    handleClick(tab) {
-      console.log(tab);
-    },
+    // 处理网站头像上传成功
     handleWebsiteAvatarSuccess(response) {
       this.websiteConfigForm.websiteAvatar = response.data;
     },
+    // 处理用户头像上传成功
     handleUserAvatarSuccess(response) {
       this.websiteConfigForm.userAvatar = response.data;
     },
-    handleArticleCoverSuccess(response) {
-      this.websiteConfigForm.articleCover = response.data;
-    },
+    // 处理游客头像上传成功
     handleTouristAvatarSuccess(response) {
       this.websiteConfigForm.touristAvatar = response.data;
     },
+    // 处理默认文章封面上传成功
+    handleArticleCoverSuccess(response) {
+      this.websiteConfigForm.articleCover = response.data;
+    },
+    // 处理微信二维码上传成功
     handleWeiXinSuccess(response) {
       this.websiteConfigForm.weiXinQRCode = response.data;
     },
+    // 处理支付宝二维码上传成功
     handleAlipaySuccess(response) {
       this.websiteConfigForm.alipayQRCode = response.data;
     },
+    // 更新博客配置信息
     updateWebsiteConfig() {
       updateBlogInfo(this.websiteConfigForm)
           .then(({data}) => {
-            if (data.flag) {
+            if (data.status) {
               this.$notify.success({
                 title: "成功",
                 message: data.message

@@ -14,6 +14,8 @@ export default {
     if (this.$store.state.userId) {
       initMenu();
     }
+    // 上传访客信息
+    this.axios.post("/api/report")
   }
 }
 </script>
